@@ -13,6 +13,7 @@ const path = require("path");
 const args = process.argv.slice(2);
 let cliProfile = null;
 let cliPort = null;
+let cliHost = null;
 
 for (let i = 0; i < args.length; i++) {
   switch (args[i]) {
@@ -22,6 +23,9 @@ for (let i = 0; i < args.length; i++) {
       break;
     case "--port":
       cliPort = parseInt(args[++i], 10);
+      break;
+    case "--host":
+      cliHost = args[++i];
       break;
     case "--help":
     case "-h":
@@ -33,15 +37,24 @@ Usage: node lib/server.js [options]
 Options:
   --profile, -p <name>  OpenClaw profile (uses ~/.openclaw-<name>)
   --port <port>         Server port (default: 3333)
+  --host <host>         Bind address (default: localhost)
   --help, -h            Show this help
 
 Environment:
   OPENCLAW_PROFILE      Same as --profile
   PORT                  Same as --port
+  HOST                  Same as --host (use 0.0.0.0 for all interfaces)
+  DASHBOARD_AUTH_MODE   Auth mode: none, token, tailscale, cloudflare, allowlist
+
+Tailscale Setup:
+  1. Start server:     node lib/server.js
+  2. Expose via Tailscale: tailscale serve --bg 3333
+  3. Access via:       https://<hostname>.<tailnet>.ts.net
 
 Examples:
   node lib/server.js --profile production
   node lib/server.js -p dev --port 3334
+  DASHBOARD_AUTH_MODE=tailscale node lib/server.js
 `);
       process.exit(0);
   }
@@ -53,6 +66,9 @@ if (cliProfile) {
 }
 if (cliPort) {
   process.env.PORT = cliPort.toString();
+}
+if (cliHost) {
+  process.env.HOST = cliHost;
 }
 
 // ============================================================================
@@ -90,6 +106,7 @@ const { createStateModule } = require("./state");
 // CONFIGURATION
 // ============================================================================
 const PORT = CONFIG.server.port;
+const HOST = CONFIG.server.host;
 const DASHBOARD_DIR = path.join(__dirname, "../public");
 const PATHS = CONFIG.paths;
 
@@ -627,11 +644,20 @@ const server = http.createServer((req, res) => {
 // ============================================================================
 // START SERVER
 // ============================================================================
-server.listen(PORT, () => {
+server.listen(PORT, HOST, () => {
   const profile = process.env.OPENCLAW_PROFILE;
-  console.log(`\u{1F99E} OpenClaw Command Center running at http://localhost:${PORT}`);
+  const bindAddr = HOST === "0.0.0.0" ? "all interfaces" : HOST;
+  console.log(`\u{1F99E} OpenClaw Command Center running at http://${HOST}:${PORT}`);
+  console.log(`   Listening on: ${bindAddr}:${PORT}`);
   if (profile) {
     console.log(`   Profile: ${profile} (~/.openclaw-${profile})`);
+  }
+  console.log(`   Auth mode: ${CONFIG.auth.mode}`);
+  if (CONFIG.auth.mode === "tailscale") {
+    console.log(``);
+    console.log(`   🔗 Tailscale Setup:`);
+    console.log(`   Run: tailscale serve --bg ${PORT}`);
+    console.log(`   Then access via: https://<hostname>.<tailnet>.ts.net`);
   }
   console.log(`   Press Ctrl+C to stop`);
 

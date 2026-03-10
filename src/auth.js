@@ -40,6 +40,11 @@ function checkAuth(req, authConfig) {
     if (!login) {
       return { authorized: false, reason: "Not accessed via Tailscale Serve" };
     }
+    // If no allowedUsers configured, allow all Tailscale-authenticated users
+    // (being on the tailnet is the authorization)
+    if (authConfig.allowedUsers.length === 0) {
+      return { authorized: true, user: { type: "tailscale", login, name, pic } };
+    }
     const isAllowed = authConfig.allowedUsers.some((allowed) => {
       if (allowed === "*") return true;
       if (allowed === login) return true;
