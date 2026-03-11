@@ -1,0 +1,59 @@
+{
+  "jobs": [
+    {
+      "id": "daily-summary",
+      "name": "Daily Summary Report",
+      "schedule": { "kind": "cron", "expr": "0 9 * * *" },
+      "enabled": true,
+      "state": {
+        "nextRunAtMs": 1741737600000,
+        "lastStatus": "success",
+        "lastRunAtMs": 1741651200000
+      }
+    },
+    {
+      "id": "health-check",
+      "name": "System Health Check",
+      "schedule": { "kind": "cron", "expr": "*/30 * * * *" },
+      "enabled": true,
+      "state": {
+        "nextRunAtMs": 1741700400000,
+        "lastStatus": "success",
+        "lastRunAtMs": 1741698600000
+      }
+    },
+    {
+      "id": "slack-digest",
+      "name": "Slack Channel Digest",
+      "schedule": { "kind": "cron", "expr": "0 18 * * 1-5" },
+      "enabled": true,
+      "state": {
+        "nextRunAtMs": 1741802400000,
+        "lastStatus": "success",
+        "lastRunAtMs": 1741716000000
+      }
+    },
+    {
+      "id": "backup-memory",
+      "name": "Memory Backup",
+      "schedule": { "kind": "cron", "expr": "0 2 * * *" },
+      "enabled": false,
+      "state": {
+        "nextRunAtMs": null,
+        "lastStatus": "skipped",
+        "lastRunAtMs": 1741564800000
+      }
+    },
+    {
+      "id": "code-review",
+      "name": "PR Review Sweep",
+      "schedule": { "kind": "cron", "expr": "0 10,14 * * 1-5" },
+      "enabled": true,
+      "state": {
+        "nextRunAtMs": 1741741200000,
+        "lastStatus": "failure",
+        "lastRunAtMs": 1741694400000
+      }
+    }
+  ]
+}

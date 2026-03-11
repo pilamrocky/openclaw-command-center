@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mission Control — AI Dashboard</title>
+  <meta name="description" content="Real-time monitoring dashboard for OpenClaw AI agents">
+
+  <!-- Design System -->
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/cards.css">
+
+  <style>
+    /* Inline critical: loading skeleton before JS runs */
+    .initial-loading {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-lg);
+      padding: var(--space-xl) 0;
+    }
+    .initial-loading .skeleton-section {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+    .initial-loading .skeleton-header {
+      height: 24px;
+      width: 200px;
+    }
+    .initial-loading .skeleton-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: var(--space-lg);
+    }
+    .initial-loading .skeleton-card {
+      height: 180px;
+      border-radius: var(--radius-lg);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header__title">
+        <span class="header__logo">🚀</span>
+        <div class="header__text">
+          <h1>Mission Control</h1>
+          <p>AI Agent Monitoring Dashboard</p>
+        </div>
+      </div>
+      <div class="header__status">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="status-text">Connecting...</span>
+      </div>
+    </header>
+
+    <!-- Dashboard Content (rendered by card engine) -->
+    <main id="dashboard">
+      <!-- Loading skeleton shown before JS loads -->
+      <div class="initial-loading">
+        <div class="skeleton-section">
+          <div class="skeleton skeleton-header"></div>
+          <div class="skeleton-cards">
+            <div class="skeleton skeleton-card"></div>
+          </div>
+        </div>
+        <div class="skeleton-section">
+          <div class="skeleton skeleton-header"></div>
+          <div class="skeleton-cards">
+            <div class="skeleton skeleton-card"></div>
+            <div class="skeleton skeleton-card"></div>
+          </div>
+        </div>
+        <div class="skeleton-section">
+          <div class="skeleton skeleton-header"></div>
+          <div class="skeleton-cards">
+            <div class="skeleton skeleton-card"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Scripts: card engine first, then renderers, then app -->
+  <script src="/js/card-engine.js"></script>
+  <script src="/js/cards/system.js"></script>
+  <script src="/js/cards/sessions.js"></script>
+  <script src="/js/cards/cron.js"></script>
+  <script src="/js/cards/memory.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

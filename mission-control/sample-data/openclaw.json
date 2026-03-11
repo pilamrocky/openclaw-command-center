@@ -1,0 +1,18 @@
+{
+  "agents": {
+    "defaults": {
+      "maxConcurrent": 8,
+      "model": "claude-sonnet-4-20250514",
+      "subagents": {
+        "maxConcurrent": 16
+      }
+    }
+  },
+  "gateway": {
+    "slack": {
+      "capabilities": {
+        "threading": "all"
+      }
+    }
+  }
+}

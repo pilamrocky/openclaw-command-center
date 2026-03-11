@@ -1,0 +1,267 @@
+/* ============================================================================
+   Mission Control — Card Styles
+   ============================================================================ */
+
+/* --- Base Card --- */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition:
+    transform var(--transition-base),
+    border-color var(--transition-base),
+    box-shadow var(--transition-base);
+  animation: cardFadeIn var(--transition-slow) ease forwards;
+  opacity: 0;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-card-hover);
+}
+
+@keyframes cardFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Card Header --- */
+.card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.card__title {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text-heading);
+}
+
+.card__icon {
+  font-size: var(--text-lg);
+}
+
+/* --- Card Body --- */
+.card__body {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* --- Stat Row --- */
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-xs) 0;
+}
+
+.stat-row + .stat-row {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.stat-row__label {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.stat-row__value {
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: var(--text-sm);
+  font-family: var(--font-mono);
+}
+
+/* --- Stat Grid (for compact numbers) --- */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+}
+
+.stat-box {
+  text-align: center;
+  padding: var(--space-sm);
+  background: var(--bg-glass);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
+
+.stat-box__value {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--text-heading);
+  font-family: var(--font-mono);
+}
+
+.stat-box__label {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+/* --- Status Badge --- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: var(--radius-xl);
+  border: 1px solid transparent;
+}
+
+.badge--active {
+  color: var(--status-active);
+  background: rgba(52, 211, 153, 0.1);
+  border-color: rgba(52, 211, 153, 0.2);
+}
+
+.badge--recent {
+  color: var(--status-recent);
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.2);
+}
+
+.badge--idle {
+  color: var(--status-idle);
+  background: rgba(100, 116, 139, 0.1);
+  border-color: rgba(100, 116, 139, 0.2);
+}
+
+.badge--success {
+  color: var(--status-success);
+  background: rgba(52, 211, 153, 0.1);
+  border-color: rgba(52, 211, 153, 0.2);
+}
+
+.badge--error {
+  color: var(--status-error);
+  background: rgba(251, 113, 133, 0.1);
+  border-color: rgba(251, 113, 133, 0.2);
+}
+
+.badge--disabled {
+  color: var(--status-disabled);
+  background: rgba(71, 85, 105, 0.1);
+  border-color: rgba(71, 85, 105, 0.2);
+}
+
+.badge--model {
+  color: var(--accent-violet);
+  background: rgba(167, 139, 250, 0.1);
+  border-color: rgba(167, 139, 250, 0.2);
+  font-family: var(--font-mono);
+}
+
+/* --- List Items (for sessions, files, etc.) --- */
+.item-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-glass);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  transition: background var(--transition-fast);
+}
+
+.item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.item__main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.item__title {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item__subtitle {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.item__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+/* --- Progress Bar --- */
+.progress {
+  height: 4px;
+  background: var(--bg-glass);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: var(--space-sm);
+}
+
+.progress__bar {
+  height: 100%;
+  border-radius: 2px;
+  transition: width var(--transition-slow);
+}
+
+.progress__bar--cyan { background: var(--accent-cyan); }
+.progress__bar--emerald { background: var(--accent-emerald); }
+.progress__bar--amber { background: var(--accent-amber); }
+.progress__bar--rose { background: var(--accent-rose); }
+
+/* --- Skeleton Loading --- */
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-glass) 25%, rgba(255,255,255,0.06) 50%, var(--bg-glass) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease infinite;
+  border-radius: var(--radius-sm);
+}
+
+.skeleton--text {
+  height: 14px;
+  margin-bottom: var(--space-xs);
+}
+
+.skeleton--box {
+  height: 60px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* --- Card Variants --- */
+.card--accent-cyan { border-top: 2px solid var(--accent-cyan); }
+.card--accent-emerald { border-top: 2px solid var(--accent-emerald); }
+.card--accent-amber { border-top: 2px solid var(--accent-amber); }
+.card--accent-violet { border-top: 2px solid var(--accent-violet); }
+.card--accent-rose { border-top: 2px solid var(--accent-rose); }
