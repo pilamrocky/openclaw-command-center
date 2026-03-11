@@ -19,6 +19,7 @@
     sessions:  document.getElementById('page-sessions'),
     cron:      document.getElementById('page-cron'),
     memory:    document.getElementById('page-memory'),
+    documents: document.getElementById('page-documents'),
     system:    document.getElementById('page-system'),
   };
 
@@ -27,6 +28,7 @@
     sessions:  { title: 'AI Sessions',      sub: 'Active and recent agent conversations' },
     cron:      { title: 'Cron Jobs',         sub: 'Scheduled task management' },
     memory:    { title: 'Agent Memory',      sub: 'Knowledge files and daily logs' },
+    documents: { title: 'Documents',         sub: 'Workspace files & knowledge base' },
     system:    { title: 'System',            sub: 'Server info and OpenClaw configuration' },
   };
 
@@ -470,6 +472,213 @@
       </div>
     `;
   };
+
+  // ----- DOCUMENTS PAGE -----
+  let docsTreeLoaded = false;
+  let docsSelectedFile = null;
+  const docsExpandedDirs = new Set();
+  const docsTreeCache = new Map();
+
+  renderers.documents = (el) => {
+    // Only render shell once, then manage tree interactively
+    if (!docsTreeLoaded) {
+      el.innerHTML = `
+        <div class="docs-layout">
+          <div class="file-tree">
+            <div class="file-tree__header">
+              <span class="file-tree__header-icon">📂</span>
+              WORKSPACE
+            </div>
+            <div id="docs-tree"><div class="tree-loading">Loading...</div></div>
+          </div>
+          <div class="file-viewer" id="docs-viewer">
+            <div class="file-viewer__empty">
+              <div class="file-viewer__empty-icon">📄</div>
+              <div class="file-viewer__empty-text">Select a file to view its contents</div>
+            </div>
+          </div>
+        </div>
+      `;
+      docsTreeLoaded = true;
+      loadTreeDir('', document.getElementById('docs-tree'));
+    }
+  };
+
+  async function loadTreeDir(dirPath, container) {
+    if (docsTreeCache.has(dirPath)) {
+      renderTreeEntries(docsTreeCache.get(dirPath), container, dirPath);
+      return;
+    }
+    container.innerHTML = '<div class="tree-loading">Loading...</div>';
+    try {
+      const url = dirPath ? `/api/files?path=${encodeURIComponent(dirPath)}` : '/api/files';
+      const res = await fetch(url);
+      const data = await res.json();
+      docsTreeCache.set(dirPath, data.entries || []);
+      renderTreeEntries(data.entries || [], container, dirPath);
+    } catch (e) {
+      container.innerHTML = '<div class="tree-loading">Failed to load</div>';
+    }
+  }
+
+  function renderTreeEntries(entries, container, parentPath) {
+    container.innerHTML = '';
+    for (const entry of entries) {
+      const node = document.createElement('div');
+      node.className = 'tree-node';
+
+      const isDir = entry.type === 'directory';
+      const isExpanded = docsExpandedDirs.has(entry.path);
+      const isSelected = docsSelectedFile === entry.path;
+      const icon = isDir ? (isExpanded ? '📂' : '📁') : getFileIcon(entry.extension);
+
+      const row = document.createElement('div');
+      row.className = 'tree-node__row' + (isSelected ? ' active' : '');
+      row.innerHTML = `
+        <span class="tree-node__arrow ${isDir ? (isExpanded ? 'tree-node__arrow--open' : '') : 'tree-node__arrow--hidden'}">▶</span>
+        <span class="tree-node__icon">${icon}</span>
+        <span class="tree-node__name">${esc(entry.name)}</span>
+      `;
+
+      node.appendChild(row);
+
+      if (isDir) {
+        const children = document.createElement('div');
+        children.className = 'tree-node__children' + (isExpanded ? '' : ' tree-node__children--hidden');
+        node.appendChild(children);
+
+        row.addEventListener('click', () => {
+          if (docsExpandedDirs.has(entry.path)) {
+            docsExpandedDirs.delete(entry.path);
+            children.classList.add('tree-node__children--hidden');
+            row.querySelector('.tree-node__arrow').classList.remove('tree-node__arrow--open');
+            row.querySelector('.tree-node__icon').textContent = '📁';
+          } else {
+            docsExpandedDirs.add(entry.path);
+            children.classList.remove('tree-node__children--hidden');
+            row.querySelector('.tree-node__arrow').classList.add('tree-node__arrow--open');
+            row.querySelector('.tree-node__icon').textContent = '📂';
+            loadTreeDir(entry.path, children);
+          }
+        });
+
+        // If already expanded, load children
+        if (isExpanded) {
+          loadTreeDir(entry.path, children);
+        }
+      } else {
+        row.addEventListener('click', () => {
+          docsSelectedFile = entry.path;
+          // Update active state
+          document.querySelectorAll('.tree-node__row.active').forEach((el) => el.classList.remove('active'));
+          row.classList.add('active');
+          loadFileContent(entry);
+        });
+      }
+
+      container.appendChild(node);
+    }
+
+    if (!entries.length) {
+      container.innerHTML = '<div class="tree-loading">Empty folder</div>';
+    }
+  }
+
+  async function loadFileContent(entry) {
+    const viewer = document.getElementById('docs-viewer');
+    viewer.innerHTML = `
+      <div class="file-viewer__header">
+        <div class="file-viewer__title">
+          <div class="file-viewer__icon">${getFileIcon(entry.extension)}</div>
+          <div>
+            <div class="file-viewer__name">${esc(entry.name)}</div>
+            <div class="file-viewer__meta">${entry.sizeFormatted || ''} · Last updated: ${formatDate(entry.modified)}</div>
+          </div>
+        </div>
+      </div>
+      <div class="file-viewer__content"><div class="tree-loading">Loading...</div></div>
+    `;
+
+    try {
+      const res = await fetch(`/api/files?path=${encodeURIComponent(entry.path)}&content=true`);
+      const data = await res.json();
+      const contentArea = viewer.querySelector('.file-viewer__content');
+
+      if (data.error) {
+        contentArea.innerHTML = `<div class="empty"><div class="empty__text">${esc(data.error)}</div></div>`;
+        return;
+      }
+
+      if (data.extension === '.json') {
+        contentArea.innerHTML = `<pre class="file-viewer__pre">${syntaxHighlightJSON(data.content)}</pre>`;
+      } else if (data.extension === '.md') {
+        contentArea.innerHTML = `<div class="file-viewer__markdown">${renderMarkdown(data.content)}</div>`;
+      } else {
+        contentArea.innerHTML = `<pre class="file-viewer__pre">${esc(data.content)}</pre>`;
+      }
+    } catch (e) {
+      viewer.querySelector('.file-viewer__content').innerHTML = '<div class="empty"><div class="empty__text">Failed to load file</div></div>';
+    }
+  }
+
+  function getFileIcon(ext) {
+    const icons = { '.md': '📄', '.json': '📋', '.txt': '📝', '.yml': '⚙️', '.yaml': '⚙️', '.sh': '💻', '.js': '📜', '.log': '📃' };
+    return icons[ext] || '📄';
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function syntaxHighlightJSON(jsonStr) {
+    try {
+      const formatted = JSON.stringify(JSON.parse(jsonStr), null, 2);
+      return formatted
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/("[^"]+")\s*:/g, '<span class="json-key">$1</span>:')
+        .replace(/:\s*("[^"]*")/g, ': <span class="json-string">$1</span>')
+        .replace(/:\s*(-?\d+\.?\d*)/g, ': <span class="json-number">$1</span>')
+        .replace(/:\s*(true|false)/g, ': <span class="json-bool">$1</span>')
+        .replace(/:\s*(null)/g, ': <span class="json-null">$1</span>');
+    } catch (e) {
+      return esc(jsonStr);
+    }
+  }
+
+  function renderMarkdown(md) {
+    return md
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      // Code blocks
+      .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+      // Inline code
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      // Headers
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+      // Bold / Italic
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+      // Horizontal rule
+      .replace(/^---$/gm, '<hr>')
+      // Unordered lists
+      .replace(/^- \[x\] (.+)$/gm, '<li>✅ $1</li>')
+      .replace(/^- \[ \] (.+)$/gm, '<li>☐ $1</li>')
+      .replace(/^- (.+)$/gm, '<li>$1</li>')
+      // Ordered lists
+      .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+      // Wrap consecutive <li> in <ul>
+      .replace(/(<li>.*<\/li>\n?)+/g, (match) => '<ul>' + match + '</ul>')
+      // Paragraphs (double newlines)
+      .replace(/\n\n/g, '</p><p>')
+      .replace(/^(?!<[huplo])(.+)$/gm, '<p>$1</p>')
+      // Clean empty paragraphs
+      .replace(/<p><\/p>/g, '')
+      .replace(/<p>(<[huo])/g, '$1')
+      .replace(/(<\/[huo]l>)<\/p>/g, '$1');
+  }
 
   // ===== Start =====
   init();

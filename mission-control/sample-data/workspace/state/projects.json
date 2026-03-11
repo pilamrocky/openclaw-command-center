@@ -1,0 +1,16 @@
+{
+  "projects": [
+    {
+      "name": "smart-budget",
+      "repo": "github.com/pilamrocky/smart-budget",
+      "status": "active",
+      "stack": ["Node.js", "React", "Docker"]
+    },
+    {
+      "name": "mission-control",
+      "repo": "github.com/pilamrocky/openclaw-command-center",
+      "status": "in-development",
+      "stack": ["Node.js", "Vanilla JS"]
+    }
+  ]
+}

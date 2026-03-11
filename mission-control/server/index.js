@@ -86,7 +86,7 @@ const server = http.createServer(async (req, res) => {
 
   // API routes
   if (pathname.startsWith('/api/')) {
-    const handled = await handleAPI(req, res, pathname, registry, sse);
+    const handled = await handleAPI(req, res, pathname, registry, sse, CONFIG);
     if (handled) return;
   }
 
